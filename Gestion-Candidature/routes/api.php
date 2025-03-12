@@ -8,12 +8,10 @@ use App\Http\Controllers\offerController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::put('/user/update', [AuthController::class, 'updateProfile']);
 });
-
-
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/offers', [OfferController::class, 'index']); 
     Route::post('/offers', [OfferController::class, 'store']); 

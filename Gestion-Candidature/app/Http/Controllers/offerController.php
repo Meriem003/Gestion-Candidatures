@@ -34,8 +34,6 @@ class OfferController extends Controller
 
         return response()->json($offer);
     }
-
-    // Supprimer une offre
     public function destroy($id)
     {
         $offer = Offer::findOrFail($id);
@@ -43,4 +41,15 @@ class OfferController extends Controller
 
         return response()->json(['message' => 'Offre supprimée']);
     }
+
+    public function search(Request $request)
+    {
+        $offers = Offer::where([
+            ['company', 'like', '%' . $request->company . '%'],
+            ['location', 'like', '%' . $request->location . '%']
+        ])->get();
+
+        return response()->json($offers);
+    }
+
 }

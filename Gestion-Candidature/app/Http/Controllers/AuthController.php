@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Competence;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -15,6 +15,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
+            'competences' => 'nullable|array', 
         ]);
 
         $user = User::create([
@@ -22,12 +23,17 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
-
+        if ($request->has('competences')) {
+            $competences = [];
+            foreach ($request->competences as $competenceName) {
+                $competences[] = Competence::firstOrCreate(['name' => $competenceName])->id;
+            }
+            $user->competences()->sync($competences);
+        }
         $token = $user->createToken('auth_token')->plainTextToken;
-
         return response()->json([
             'message' => 'Utilisateur créé avec succès',
-            'user' => $user,
+            'user' => $user->load('competences'),
             'token' => $token
         ], 201);
     }
@@ -50,19 +56,10 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Connexion réussie',
-            'user' => $user,
+            'user' => $user->load('competences'),
             'token' => $token
         ], 200);
     }
-    public function logout(Request $request)
-    {
-        $request->user()->tokens()->delete();
-
-        return response()->json([
-            'message' => 'Déconnexion réussie'
-        ], 200);
-    }
-
     public function updateProfile(Request $request)
     {
         $user = $request->user();
@@ -71,6 +68,8 @@ class AuthController extends Controller
             'name' => 'sometimes|string|max:255',
             'email' => "sometimes|string|email|max:255|unique:users,email,{$user->id}",
             'password' => 'sometimes|string|min:6',
+            'competences' => 'nullable|array',
+            'competences.*' => 'string|max:255',
         ]);
 
         if ($request->has('name')) {
@@ -86,11 +85,16 @@ class AuthController extends Controller
         }
 
         $user->save();
-
+        if ($request->has('competences')) {
+            $competences = [];
+            foreach ($request->competences as $competenceName) {
+                $competences[] = Competence::firstOrCreate(['name' => $competenceName])->id;
+            }
+            $user->competences()->sync($competences);
+        }
         return response()->json([
             'message' => 'Profil mis à jour avec succès',
-            'user' => $user,
+            'user' => $user->load('competences'),
         ], 200);
     }
-
 }

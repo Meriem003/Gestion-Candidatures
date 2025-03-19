@@ -14,11 +14,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/offers', [OfferController::class, 'index']); 
     Route::post('/offers', [OfferController::class, 'store']); 
-    Route::post('/offers/{id}/apply', [OfferController::class, 'apply']); 
-    Route::delete('/offers/{id}/detach', [OfferController::class, 'detach']);
     Route::put('/offers/{id}', [OfferController::class, 'update']);
     Route::delete('/offers/{id}', [OfferController::class, 'destroy']);
 });
 Route::get('/offers/search', [OfferController::class, 'search']);
-
-

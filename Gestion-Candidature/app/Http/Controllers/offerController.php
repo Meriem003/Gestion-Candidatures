@@ -12,6 +12,8 @@ class OfferController extends Controller
     {
         return Offer::with('users')->get();
     }
+
+    
     public function store(Request $request)
     {
         $request->validate([
@@ -22,34 +24,54 @@ class OfferController extends Controller
             'salary' => 'nullable|numeric',
             'deadline' => 'nullable|date',
         ]);
-
-        $offer = Offer::create($request->all());
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Non autorisé'], 401);
+        }
+        $offer = Offer::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'company' => $request->company,
+            'location' => $request->location,
+            'salary' => $request->salary,
+            'deadline' => $request->deadline,
+            'recruiter_id' => Auth::id(),
+        ]);
 
         return response()->json($offer, 201);
     }
+
+
     public function update(Request $request, $id)
     {
         $offer = Offer::findOrFail($id);
+        if (Auth::id() !== $offer->recruiter_id) {
+            return response()->json(['message' => 'Accès interdit'], 403);
+        }
         $offer->update($request->all());
-
         return response()->json($offer);
     }
+
+
     public function destroy($id)
     {
         $offer = Offer::findOrFail($id);
+        if (Auth::id() !== $offer->recruiter_id) {
+            return response()->json(['message' => 'Accès interdit'], 403);
+        }
         $offer->delete();
-
         return response()->json(['message' => 'Offre supprimée']);
     }
 
+
     public function search(Request $request)
     {
-        $offers = Offer::where([
-            ['company', 'like', '%' . $request->company . '%'],
-            ['location', 'like', '%' . $request->location . '%']
-        ])->get();
-
-        return response()->json($offers);
+        $query = Offer::query();
+        if ($request->filled('company')) {
+            $query->where('company', 'like', '%' . $request->company . '%');
+        }
+        if ($request->filled('location')) {
+            $query->where('location', 'like', '%' . $request->location . '%');
+        }
+        return response()->json($query->get());
     }
-
 }

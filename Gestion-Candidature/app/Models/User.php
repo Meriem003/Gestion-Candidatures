@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
@@ -49,8 +49,13 @@ class User extends Authenticatable
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function offers()
+        public function competences(): BelongsToMany
     {
-        return $this->belongsToMany(Offer::class, 'offer_user')->withTimestamps();
+        return $this->belongsToMany(Competence::class, 'competence_user');
     }
+        public function offers(): HasMany
+    {
+        return $this->hasMany(Offer::class, 'recruiter_id');
+    }
+    
 }
